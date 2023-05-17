@@ -5,20 +5,21 @@ from django import forms
 from .models import Product
 
 class CustomerRegistrationForm(forms.ModelForm):
-    email = forms.EmailField(required=True)
-    full_name = forms.CharField(required=True)
+    username = forms.CharField(widget=forms.TextInput())
+    password = forms.CharField(widget=forms.PasswordInput())
+    email = forms.CharField(widget=forms.EmailInput())
 
     class Meta:
-        model = User
-        fields = ('username', 'email', 'full_name')
+        model = Customer
+        fields = ["username", "password", "email", "full_name", "address"]
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['full_name']
-        if commit:
-            user.save()
-        return user
+    def clean_username(self):
+        uname = self.cleaned_data.get("username")
+        if User.objects.filter(username=uname).exists():
+            raise forms.ValidationError(
+                "Customer with this username already exists.")
+
+        return uname
 
 
 class CheckoutForm(forms.ModelForm):
